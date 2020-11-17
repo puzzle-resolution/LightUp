@@ -5,7 +5,8 @@
   "main": "",
   "scripts": {
     "test": "jest",
-    "build": "rollup -c rollup.config.ts"
+    "build": "rollup -c rollup.config.ts",
+    "start": "rollup -c rollup.config.ts -w"
   },
   "author": "",
   "license": "ISC",
