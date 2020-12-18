@@ -15,7 +15,7 @@ export enum BlockType {
     THREE = 3,  //数字为3的黑色块
     FOUR = 4,   //数字为4的黑色块
 }
-export enum BlankBlockType {
+export enum BlackBlockType {
     ONE = BlockType.ONE,    //数字为1的黑色块
     TWO = BlockType.TWO,    //数字为2的黑色块
     THREE = BlockType.THREE,//数字为3的黑色块
@@ -23,9 +23,11 @@ export enum BlankBlockType {
 }
 
 export enum BlankStatus { //空白块状态
-    Disabled = -1, //空白块，已被禁止选中（或不是空白块）
+    NONE = -2, //不是空白块
+    Disabled = -1, //空白块，已被禁止选中
     Blank = 0, //空白块，未选中
     Checked = 1, //空白块，已选中
+    Lighted = 2, //空白块，已被灯点亮
 }
 export type BlackStatus = -1 | 0 | 1 | 2 | 3 | 4; //黑色块完成状态 (-1表示 不是黑色块）
 

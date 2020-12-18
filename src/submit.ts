@@ -4,7 +4,9 @@ export function replaceAnswer(answer: string) {
         Game.saveState();
         Game.tickTimer();
         this.jstimerPersonal.value = Game.getTimer();
-        this.ansH.value = '${answer}';`)
+        this.ansH.value = '${answer}';`);
+
+        $("#btnReady").off("click"); //卸载post提交答案方法，绕过Game组件逻辑
     }
 }
 
