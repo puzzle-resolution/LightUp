@@ -12,8 +12,8 @@ export default {
     ],
     output: [
         {
-            format: "es",
-            file: "dist/bundle.esm.js",
+            format: "commonjs",
+            file: "dist/LightUp.js",
             sourcemap: true
         }
     ]

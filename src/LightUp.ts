@@ -23,21 +23,21 @@ export default class LightUp {
         let blocks: { x: number, y: number, count: BlackBlockType }[] = [];
         for (let x of Graph.keys())
             for (let y of Graph[x].keys())
-                if (Graph[x][y] !== BlockType.WHITE && Graph[x][y] !== BlockType.ZERO)
+                if (Graph[x][y] !== BlockType.WHITE && Graph[x][y] !== BlockType.BLACK)
                     blocks.push({ x, y, count: Graph[x][y] as unknown as BlackBlockType });
         return blocks;
     }
     initState(Graph: BlockType[][]): [BlankStatus[][], BlackStatus[][]] {
         let blankState: BlankStatus[][] = [], blackState: BlackStatus[][] = [];
         for (let x of Graph.keys()) {
-            blankState[x] = [];
+            blankState[x] = [], blackState[x] = [];
             for (let y of Graph[x].keys()) {
                 if (Graph[x][y] === BlockType.WHITE) { //空白
                     blankState[x][y] = BlankStatus.Blank;
                     blackState[x][y] = -1;
                 } else {
                     blankState[x][y] = BlankStatus.NONE;
-                    blackState[x][y] = 0;
+                    blackState[x][y] = Graph[x][y];
                 }
             }
         }
@@ -140,7 +140,7 @@ export default class LightUp {
 
         const { blackState } = data;
         const condition = (px: Position): boolean => {
-            return this.checkBoundary(px) && this.graph[px.x][px.y] !== BlockType.WHITE && this.graph[px.x][px.y] !== BlockType.ZERO && blackState[px.x][px.y] === this.graph[px.x][px.y];
+            return this.checkBoundary(px) && this.graph[px.x][px.y] !== BlockType.WHITE && this.graph[px.x][px.y] !== BlockType.BLACK && this.graph[px.x][px.y] !== BlockType.ZERO && blackState[px.x][px.y] === this.graph[px.x][px.y];
         }
         return this.aroundTRBL(p, condition);
     }
@@ -174,16 +174,20 @@ export default class LightUp {
         const { x, y } = p;
         if (!this.checkBoundary(p)) { console.log('//对边界外区域执行了选择动作'); return false; } //判断边界
         if (this.graph[x][y] !== BlockType.WHITE) { console.log('//对非空白块执行了选择动作'); return false; } //检查非空白块
-        //更新空白块状态为已选中
-        data.blankState[x][y] = BlankStatus.Checked;
-        //更新空白块四周的未完成节点的状态，并将应用了更新动作的节点加入队列
-        //此处直接加入队列，更新动作由队列处理
-        const blacks = this.restBlackUnsolved(data, { x, y });
-        this.appendToUpdateQueue(data, queue, blacks.filter(i => i) as NonNullable<(typeof blacks)[number]>[]);
-        //点亮四个方向上连通的空白块
-        const blanks = this.listUnlightBlank(data, { x, y });
-        blanks.map(i => this.lightPosition(data, queue, i));
-        return true;
+
+        if (data.blankState[x][y] === BlankStatus.Blank) {
+            //更新空白块状态为已选中
+            data.blankState[x][y] = BlankStatus.Checked;
+            //更新空白块四周的未完成节点的状态，并将应用了更新动作的节点加入队列
+            //此处直接加入队列，更新动作由队列处理
+            const blacks = this.restBlackUnsolved(data, { x, y });
+            this.appendToUpdateQueue(data, queue, blacks.filter(i => i) as NonNullable<(typeof blacks)[number]>[]);
+            //点亮四个方向上连通的空白块
+            const blanks = this.listUnlightBlank(data, { x, y });
+            blanks.map(i => this.lightPosition(data, queue, i));
+            return true;
+        }
+        return false;
     }
     updateEqual(data: State, queue: QueueType, p: Position): boolean { //更新节点的等价状态
         if (!this.checkBoundary(p)) { console.log('//对边界外区域执行了更新动作'); return false; } //判断边界
@@ -208,7 +212,7 @@ export default class LightUp {
                     }
                 } else { } //忽略已选中的块
                 break;
-            case BlockType.ZERO: //忽略纯黑块
+            case BlockType.BLACK: //忽略纯黑块
                 break;
             default: //节点
                 const state = blackState[x][y]; if (state === -1) { throw new Error('assert 1'); }
@@ -219,7 +223,12 @@ export default class LightUp {
                         if (p) if (this.choosePosition(data, queue, p)) { console.log('选择动作失败3'); return false; }
                 } else if (rest < total) { console.log('周围没有足够的可用空白块'); return false; } //周围没有足够的可用空白块
                 else {
-                    if (total === 1 && rest === 2) {
+                    if (total === 0) {
+                        this.disablePosition(data, queue, this.leftPosition({ x, y }));
+                        this.disablePosition(data, queue, this.topPosition({ x, y }));
+                        this.disablePosition(data, queue, this.rightPosition({ x, y }));
+                        this.disablePosition(data, queue, this.bottomPosition({ x, y }));
+                    } else if (total === 1 && rest === 2) {
                         const [p1, p2, p3, p4] = restPoints;
                         if ((p1 !== undefined && p3 !== undefined)
                             || (p2 !== undefined && p4 !== undefined)) { } //两点为水平角度，无动作
@@ -319,14 +328,34 @@ export default class LightUp {
         return false;
     }
     verificate(data: State): boolean {
-
+        const { blackState, blankState } = data;
+        for (let x of this.graph.keys()) {
+            for (let y of this.graph[x].keys()) {
+                if (this.graph[x][y] === BlockType.WHITE) {
+                    if (!(blankState[x][y] == BlankStatus.Lighted || blankState[x][y] == BlankStatus.Checked))
+                        return false;
+                } else if (this.graph[x][y] !== BlockType.BLACK) {
+                    if (blackState[x][y] != this.graph[x][y])
+                        return false;
+                }
+            }
+        }
+        return true;
     }
 
     getPositionCases(data: State, p: Position): Case[] { //获取一个未完成空白块的所有方案(两种)
-
+        return [
+            { position: this.clonePosition(p), choose: true },
+            { position: this.clonePosition(p), choose: false },
+        ];
     }
     applyPositionCase(data: State, queue: QueueType, c: Case): boolean { //应用一个未完成空白块的某一方案
-
+        const { position, choose } = c;
+        if (choose) {
+            return this.choosePosition(data, queue, position);
+        } else {
+            return this.disablePosition(data, queue, position);
+        }
     }
     recu(data: State): State | false {
         const { currentRecuIndex } = data;
@@ -355,7 +384,8 @@ export default class LightUp {
                             blankState: this.cloneState(data.blankState),
                             blackState: this.cloneState(data.blackState),
                         };
-                        if (this.applyPositionCase(newData, queue, c) && this.clearUpdateQueue(newData, queue)) {
+                        const newQueue = new Set(queue);
+                        if (this.applyPositionCase(newData, newQueue, c) && this.clearUpdateQueue(newData, newQueue)) {
                             const result = this.recu({ ...newData, currentRecuIndex: newData.currentRecuIndex + 1 });
                             if (result) { return result };
                         }
@@ -380,7 +410,7 @@ export default class LightUp {
             blackState: this.cloneState(blackState),
             currentRecuIndex: 0,
         });
-        return (this.answer = (result ? this.generaterAnawer(result.blankState) : ''));
+        return (this.answer = (result ? this.generaterAnawer(result.blankState) : 'failed'));
     }
     generaterAnawer(blankState: State["blankState"]): string {
         return 'success';
@@ -389,13 +419,15 @@ export default class LightUp {
 
 
 (() => {
-    const puzzleSize = ({
-        0: [7, 7], 1: [7, 7], 2: [7, 7],
-        3: [10, 10], 4: [10, 10], 5: [10, 10],
-        6: [14, 14], 7: [14, 14], 8: [14, 14],
-        9: [25, 25], 10: [25, 25], 11: [25, 25],
-        13: [30, 30], 12: [30, 40], 14: [40, 50],
-    } as { [key in number]: [number, number] })[+Object.fromEntries([...new URL(location.href).searchParams]).size || 0];
+    console.log('start');
+    // const puzzleSize = ({
+    //     0: [7, 7], 1: [7, 7], 2: [7, 7],
+    //     3: [10, 10], 4: [10, 10], 5: [10, 10],
+    //     6: [14, 14], 7: [14, 14], 8: [14, 14],
+    //     9: [25, 25], 10: [25, 25], 11: [25, 25],
+    //     13: [30, 30], 12: [30, 40], 14: [40, 50],
+    // } as { [key in number]: [number, number] })[+Object.fromEntries([...new URL(location.href).searchParams]).size || 0];
+    const puzzleSize: [number, number] = [7, 7];
     const taskKey: string = mockTask ? mockData.taskKey : task; //test
     const tasks: BlockType[][] = (mockTask ? parseTask(taskKey, ...puzzleSize) as BlockType[][] : Game.task);
     console.log('task', taskKey, tasks);

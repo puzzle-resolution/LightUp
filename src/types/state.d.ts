@@ -1,4 +1,4 @@
-import { BlankStatus, BlackStatus } from './block';
+import { BlankStatus, BlackStatus, Position } from './block';
 export interface State {
     //const
     // graph: BlockType[][],
@@ -10,5 +10,6 @@ export interface State {
 }
 
 export interface Case {
-
+    position: Position,
+    choose: boolean,
 }

@@ -8,7 +8,7 @@
             "name": "launch",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/dist/LigntUp.js",
+            "program": "${workspaceRoot}/dist/LightUp.js",
             "args": [],
             "cwd": "${workspaceRoot}",
             "protocol": "inspector"

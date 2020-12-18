@@ -4,6 +4,7 @@
         "target": "ES6",
         "outDir": "dist",
         // "outFile": "dist/Hashi.js",
+        "declaration": true,
         "module": "ES2015",
         "moduleResolution": "node",
         "lib": [
