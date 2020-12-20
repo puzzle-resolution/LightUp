@@ -7,7 +7,7 @@
 //     | 3 //数字为3的黑色块
 //     | 4 //数字为4的黑色块
 //     ;
-export enum BlockType {
+export const enum BlockType {
     WHITE = -1, //空白块
     BLACK = -2, //不带数字的黑色块
     ZERO = 0,   //数字为0的黑色块
@@ -16,14 +16,14 @@ export enum BlockType {
     THREE = 3,  //数字为3的黑色块
     FOUR = 4,   //数字为4的黑色块
 }
-export enum BlackBlockType {
+export const enum BlackBlockType {
     ONE = BlockType.ONE,    //数字为1的黑色块
     TWO = BlockType.TWO,    //数字为2的黑色块
     THREE = BlockType.THREE,//数字为3的黑色块
     FOUR = BlockType.FOUR,  //数字为4的黑色块
 }
 
-export enum BlankStatus { //空白块状态
+export const enum BlankStatus { //空白块状态
     NONE = -2, //不是空白块
     Disabled = -1, //空白块，已被禁止选中
     Blank = 0, //空白块，未选中
