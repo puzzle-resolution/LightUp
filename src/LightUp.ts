@@ -3,7 +3,7 @@ import { replaceAnswer, submitAnswer } from './submit';
 import { BlockType, BlackBlockType, BlankStatus, BlackStatus, Position } from './types/block';
 import { State, Case } from './types/state';
 
-const mockTask = true; //mock调试模式
+const mockTask = false; //mock调试模式
 const mockData = {
     taskKey: "aBBa2bBa2dBBBBBBcBaBdBbBaBBaBBiBdBBbBaBa3b3a2aBB0bBbBc1aBrBa2aB2b1cBBcB2a2aB2a2a1b01iBcBBaBdBgBaBdB1cBa1dBbBc3Ba1aB0cBBgBaB2aBaBBbBaBBBaBaBa0a2BBBb3bBhBB1b1b3c2dB1bBaBBbBdBaBe1a1fBcBf2eBfBcBf2aBeBa3d2bB2a0bBBd1c2bBbBB2hBb3bBBBBa1aBaBaB2Ba1b10aBa30a2gB1cB0a2aBBc1bBdBaBcB0dBaBg0dBaBBcBiB1bBaBaBBaBa11c0BcBbB2aBaBrBa2c0bBb2BBaBa1b1a1aBbBBdBiBBaB1aBbBdBaBcBBBBBBdBaBbBaB2a",
 };
@@ -182,8 +182,8 @@ export default class LightUp {
             const blacks = this.restBlackUnsolved(data, { x, y });
             this.appendToUpdateQueue(data, queue, blacks.filter(i => i) as NonNullable<(typeof blacks)[number]>[]);
             //四个方向上连通的，未被点亮的空白块，加入队列
-            // const blanks = this.listUnlightBlank(data, { x, y });
-            // this.appendToUpdateQueue(data, queue, blanks);
+            const blanks = this.listUnlightBlank(data, { x, y });
+            this.appendToUpdateQueue(data, queue, blanks);
             return true;
         } else {
             return true; //disable外不做检查，此处可能对已选中的节点做disable操作，不返回失败
@@ -196,8 +196,8 @@ export default class LightUp {
         const blacks = this.restBlackUnsolved(data, p);
         this.appendToUpdateQueue(data, queue, blacks.filter(i => i) as NonNullable<(typeof blacks)[number]>[]);
         //四个方向上(2个方向)连通的，未被点亮的空白块，加入队列
-        // const blanks = this.listUnlightBlank(data, p);
-        // this.appendToUpdateQueue(data, queue, blanks);
+        const blanks = this.listUnlightBlank(data, p);
+        this.appendToUpdateQueue(data, queue, blanks);
         return true;
     }
     choosePosition(data: State, queue: QueueType, p: Position): boolean { //选中空白块p
