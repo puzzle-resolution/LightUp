@@ -359,8 +359,13 @@ export default class LightUp {
         return true;
     }
 
-    findNext(data: State): Position | false { //寻找一个未完成的空白块(可选中的空白块，此处不处理被禁用的块，避免死循环)
-        const { blankState } = data;
+    findNext(data: State): Position | false { //寻找一个未完成的节点 或 可用的空白位置，优先节点
+        const { blackState, blankState } = data;
+        for (let x of this.graph.keys())
+            for (let y of this.graph[x].keys())
+                if (this.graph[x][y] !== BlockType.WHITE && this.graph[x][y] !== BlockType.BLACK
+                    && (blackState[x][y] !== this.graph[x][y])) return { x, y };
+
         for (let x of this.graph.keys())
             for (let y of this.graph[x].keys())
                 if (this.graph[x][y] === BlockType.WHITE
@@ -385,40 +390,39 @@ export default class LightUp {
         return true;
     }
 
-    getPositionCases(data: State, p: Position): Case[] { //获取一个未完成空白块的所有方案(两种)
-        //查找四个方向上，是否有连通的可用的空白块
-        //若有，则当前有两种方案；否则仅有一种方案（选中）
-        const blanks = this.listAccessableBlank(data, p);
-        const currentCheckable = data.blankState[p.x][p.y] === BlankStatus.Blank;
-        if (currentCheckable) {
-            if (blanks.length !== 0) {
-                return [
-                    { position: this.clonePosition(p), choose: true },
-                    { position: this.clonePosition(p), choose: false },
-                ];
-            } else {
-                return [
-                    { position: this.clonePosition(p), choose: true },
-                ];
+    getPositionCases(data: State, p: Position): Case[] { //获取一个未完成节点的所有方案
+        const { x, y } = p;
+        if (this.graph[x][y] === BlockType.WHITE) {
+            //判断节点是否可用
+            const currentCheckable = data.blankState[p.x][p.y] === BlankStatus.Blank;
+            if (currentCheckable) {
+                //查找四个方向上，是否有连通的可用的空白块
+                //若有，则当前有两种方案；否则仅有一种方案（选中）
+                const blanks = this.listAccessableBlank(data, p);
+                if (blanks.length !== 0) {
+                    return [
+                        { checkPositions: [this.clonePosition(p)], disablePositions: [] },
+                        { checkPositions: [], disablePositions: [this.clonePosition(p)] },
+                    ];
+                } else {
+                    return [{ checkPositions: [this.clonePosition(p)] }];
+                }
             }
+            return [];
         } else {
-            if (blanks.length !== 0) {
-                return [
-                    { position: this.clonePosition(p), choose: false },
-                ];
-            } else {
-                return [];
-            }
+            const total = this.graph[x][y];
+            const rest = total - data.blackState[x][y];
+            const blanks = this.restBlankCanChoose(data, this.clonePosition(p));
+            const blankCount = blanks.filter(i => i).length; //<=4
         }
-
     }
     applyPositionCase(data: State, queue: QueueType, c: Case): boolean { //应用一个未完成空白块的某一方案
-        const { position, choose } = c;
-        if (choose) {
-            return this.choosePosition(data, queue, position);
-        } else {
-            return this.disablePosition(data, queue, position);
-        }
+        // const { position, choose } = c;
+        // if (choose) {
+        //     return this.choosePosition(data, queue, position);
+        // } else {
+        //     return this.disablePosition(data, queue, position);
+        // }
     }
     recu(data: State): State | false {
         const { currentRecuIndex } = data;

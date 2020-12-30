@@ -10,6 +10,6 @@ export interface State {
 }
 
 export interface Case {
-    position: Position,
-    choose: boolean,
+    checkPositions: Position[],
+    disablePositions: Position[],
 }
