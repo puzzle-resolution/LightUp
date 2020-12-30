@@ -5,7 +5,7 @@ import { State, Case } from './types/state';
 
 const mockTask = false; //mock调试模式
 const mockData = {
-    taskKey: "aBBa2bBa2dBBBBBBcBaBdBbBaBBaBBiBdBBbBaBa3b3a2aBB0bBbBc1aBrBa2aB2b1cBBcB2a2aB2a2a1b01iBcBBaBdBgBaBdB1cBa1dBbBc3Ba1aB0cBBgBaB2aBaBBbBaBBBaBaBa0a2BBBb3bBhBB1b1b3c2dB1bBaBBbBdBaBe1a1fBcBf2eBfBcBf2aBeBa3d2bB2a0bBBd1c2bBbBB2hBb3bBBBBa1aBaBaB2Ba1b10aBa30a2gB1cB0a2aBBc1bBdBaBcB0dBaBg0dBaBBcBiB1bBaBaBBaBa11c0BcBbB2aBaBrBa2c0bBb2BBaBa1b1a1aBbBBdBiBBaB1aBbBdBaBcBBBBBBdBaBbBaB2a",
+    taskKey: "bBbBBbBBa1bBcBbBc3cBaBg1b1bBa3aBaBBbBeBaBdBaBBaBaBBB2bB2e0c02aB0fBBBBd0bBBBBaBBc1a0BaB0a1a0dBcBBbBBa1aBBhBBB3bBBa3a2dBcBd2fBBaBe0a1cBcBBaBa3a1cBBbBBBa0c2BjBbB2bBa0g0bBdBfBBaBo0a1a1d2e1dBa3aBo0aBBfBd1b1gBa0bBBbBjBBcBa1BBbBBc0a0aBaBBc0cBa2e3aBBfBdBcBdBa1aBBbBB2BhBBa1a0BbB1c1dBa3aBBaBBaBcBBaBBBBbBdBBB2fB1aB2c1eB0bBBBBaBaBBaBdBa1eBb1BaBa4aBbBbBg3aBc3cBb2cBbBaBBbBBbBb",
 };
 
 type QueueType = Set<string>;
@@ -232,7 +232,7 @@ export default class LightUp {
                     //若没有，则选中当前空白块；否则无动作
                     const blanks = this.listAccessableBlank(data, p);
                     if (blanks.length === 0) {
-                        if (this.choosePosition(data, queue, p)) { console.log('选择动作失败1'); return false; }
+                        if (!this.choosePosition(data, queue, p)) { console.log('选择动作失败1'); return false; }
                     }
                 } else if (blankState[x][y] === BlankStatus.Disabled) { //禁用块
                     //查找四个方向上，是否有连通的可用的空白块
@@ -240,7 +240,7 @@ export default class LightUp {
                     const blanks = this.listAccessableBlank(data, p);
                     if (blanks.length === 0) { return false; }
                     else if (blanks.length === 1) {
-                        if (this.choosePosition(data, queue, p)) { console.log('选择动作失败2'); return false; }
+                        if (!this.choosePosition(data, queue, this.clonePosition(blanks[0]))) { console.log('选择动作失败2'); return false; }
                     }
                 } else { } //忽略已选中的块
                 break;
@@ -350,7 +350,7 @@ export default class LightUp {
                 console.log('clear queue', count++, pos);
 
                 const [x, y] = pos.split(',').map(i => +i);
-                this.updateEqual(data, queue, this.clonePosition({ x, y }));
+                if (!this.updateEqual(data, queue, this.clonePosition({ x, y }))) { return false; }
             }
         } catch (err) {
             console.error('clear queue error', err);
