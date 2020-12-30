@@ -10,6 +10,8 @@ const mockData = {
 
 type QueueType = Set<string>;
 
+window.useRobot = true; //默认启用robot
+
 export default class LightUp {
     graph: BlockType[][];
     blackBlocks: { x: number, y: number, count: BlackBlockType }[];
@@ -552,6 +554,7 @@ function registerWorkerWithBlob(config: {
             console.info('耗时', timer2.valueOf() - timer1.valueOf(), 'ms');
             replaceAnswer(answer);
             window.submit = submitAnswer;
+            window.useRobot && submitAnswer();
         }
     });
 })();
@@ -559,5 +562,6 @@ function registerWorkerWithBlob(config: {
 declare global {
     interface Window {
         submit: any;
+        useRobot: boolean;
     }
 }
